@@ -3,84 +3,119 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ESP32 Sandbox (GitHub Pages)</title>
+  <title>ESP32 Virtual Lab</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="title">ESP32 Sandbox</div>
-      <div class="sub">UI “fisica” su GitHub Pages + simulazione embedded</div>
+      <div class="title">ESP32 Virtual Lab</div>
+      <div class="sub">Simulazione in-browser (RAM): ESP32 + LCD 128×64 + 3 tasti • Arduino-like</div>
     </div>
 
     <div class="toolbar">
-      <button id="btnPower" class="btn">Power: OFF</button>
+      <div class="psu">
+        <span class="tag">PSU</span>
+        <span class="lbl">Vout</span>
+        <input id="vout" type="range" min="0" max="5" step="0.1" value="3.3">
+        <span id="voutTxt" class="mono">3.3V</span>
+        <button id="btnPower" class="btn">Power: OFF</button>
+      </div>
+
+      <button id="btnLoad" class="btn primary">Carica codice</button>
+      <button id="btnRun" class="btn">▶ Run</button>
+      <button id="btnStop" class="btn">■ Stop</button>
       <button id="btnReset" class="btn">↻ Reset</button>
-      <button id="btnOpenCode" class="btn primary">Apri / Modifica codice</button>
-      <button id="btnBt" class="btn">BT (Web Bluetooth)</button>
     </div>
   </header>
 
   <main class="layout">
-    <section class="left">
-      <div class="card board">
-        <div class="row">
-          <div class="badge mono">ESP32 DevKit (sim)</div>
-          <div id="psu" class="psu mono">PSU: 3.3V</div>
-        </div>
-
-        <div class="psuBar">
-          <span class="mono muted">Vout</span>
-          <input id="vout" type="range" min="0" max="5" step="0.1" value="3.3">
-          <span id="voutTxt" class="mono">3.3V</span>
-        </div>
-
-        <div class="pins">
-          <div class="pincol">
-            <div class="pintitle mono">GPIO (sinistra)</div>
-            <div id="pinsL" class="pinlist mono"></div>
-          </div>
-          <div class="chip">
-            <div class="chipInner mono">
-              <div class="chipT">ESP32</div>
-              <div class="chipS">sandbox</div>
-            </div>
-          </div>
-          <div class="pincol">
-            <div class="pintitle mono">GPIO (destra)</div>
-            <div id="pinsR" class="pinlist mono"></div>
-          </div>
-        </div>
-
-        <div class="legend mono muted">
-          Default: SSD1306 I2C SDA=21 SCL=22 • BTN ◀=19 OK=18 ▶=5
+    <!-- LEFT: Board + LCD -->
+    <section class="panel">
+      <div class="panelHead">
+        <h2>Banco</h2>
+        <div class="hint">
+          LCD 128×64 (mono) collegato su I2C: SDA=GPIO21, SCL=GPIO22 • Tasti: GPIO19/18/5 (pullup)
         </div>
       </div>
 
-      <div class="card log">
-        <div class="cardTitle">Log</div>
-        <pre id="log" class="mono"></pre>
+      <div class="bench">
+        <div class="boardWrap">
+          <div class="board">
+            <div class="boardTop">
+              <span class="badge mono">ESP32 DevKit (Sim)</span>
+              <span id="runtimeState" class="state mono">STATE: idle</span>
+            </div>
+
+            <div class="boardBody">
+              <div id="pinsL" class="pins mono"></div>
+
+              <div class="chip">
+                <div class="chipInner mono">
+                  <div class="chipT">ESP32</div>
+                  <div class="chipS">virtual lab</div>
+                  <div class="chipM muted">GPIO + I2C + Buttons + LCD</div>
+                </div>
+              </div>
+
+              <div id="pinsR" class="pins mono"></div>
+            </div>
+
+            <div class="boardBottom mono">
+              <span id="selInfo">Selezione: —</span>
+              <span class="muted">Tutto gira in RAM • no backend</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lcdCard">
+          <div class="lcdHead">
+            <div class="lcdTitle">LCD 128×64</div>
+            <div class="lcdMeta mono muted" id="lcdMeta">I2C SSD1306 • 0x3C • SDA 21 • SCL 22</div>
+          </div>
+
+          <div class="lcdSurface" id="lcdSurface">
+            <canvas id="lcd" width="128" height="64"></canvas>
+          </div>
+
+          <div class="keys">
+            <button class="key" id="btnLeft">◀</button>
+            <button class="key" id="btnOk">OK</button>
+            <button class="key" id="btnRight">▶</button>
+          </div>
+
+          <div class="keysNote mono muted">
+            GPIO19=◀ • GPIO18=OK • GPIO5=▶ (INPUT_PULLUP) • Premere = LOW
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="right">
-      <div class="card sim">
-        <div class="cardTitle">
-          Simulazione
-          <span class="muted mono">(Wokwi embed)</span>
+    <!-- RIGHT: Editor + Console -->
+    <section class="panel">
+      <div class="panelHead">
+        <h2>Sketch</h2>
+        <div class="hint">Incolla sketch Arduino “standard” (subset). Il runtime simula GPIO, Serial, LCD.</div>
+      </div>
+
+      <div class="editor">
+        <textarea id="code" spellcheck="false"></textarea>
+
+        <div class="row">
+          <div class="statusPills mono">
+            <span class="pill" id="pillCompat">Compat: OK</span>
+            <span class="pill" id="pillLoop">Loop: —</span>
+            <span class="pill" id="pillMillis">millis: 0</span>
+          </div>
+          <button id="btnInsertTest" class="btn small">Carica programma test</button>
         </div>
 
-        <!-- METTI QUI IL TUO LINK WOKWI -->
-        <iframe
-          id="simFrame"
-          src="https://wokwi.com/projects/XXXXXXXXXXXX/embed"
-          loading="lazy"
-          allow="fullscreen"
-          referrerpolicy="no-referrer"
-        ></iframe>
-
-        <div class="muted mono hint">
-          Tip: compili e vedi gli errori direttamente nell’editor Wokwi embedded.
+        <div class="console">
+          <div class="consoleHead">
+            <div class="consoleTitle">Console / Errori</div>
+            <button id="btnClearLog" class="btn small">Clear</button>
+          </div>
+          <pre id="log" class="mono"></pre>
         </div>
       </div>
     </section>
