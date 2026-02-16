@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ESP32 Sandbox Lab (MVP)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="title">ESP32 Sandbox Lab</div>
+      <div class="sub">Emulatore UI + periferiche + sketch runner</div>
+    </div>
+
+    <div class="psu">
+      <div class="psu-row">
+        <span class="badge">PSU</span>
+        <label class="lbl">Vout</label>
+        <input id="psuV" type="range" min="0" max="5" step="0.1" value="3.3">
+        <span id="psuVtxt" class="mono">3.3V</span>
+        <button id="powerBtn" class="btn">Power: OFF</button>
+      </div>
+      <div class="psu-row small">
+        <span class="muted">Tip: il wiring “accende” i device solo se PSU ON e collegati a 3V3/GND.</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="runBtn" class="btn primary">▶ Run</button>
+      <button id="stopBtn" class="btn">■ Stop</button>
+      <button id="resetBtn" class="btn">↻ Reset</button>
+      <button id="btBtn" class="btn">BT: Connect</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left: Board + wiring -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Scheda + GPIO</h2>
+        <div class="hint">Clicca un pin → poi clicca un terminale device per collegare.</div>
+      </div>
+
+      <div class="board-area">
+        <div id="board" class="board">
+          <div class="board-label mono">ESP32 DevKit (UI)</div>
+
+          <div class="pins left">
+            <!-- left header pins -->
+          </div>
+
+          <div class="chip">
+            <div class="chip-inner mono">
+              <div>ESP32</div>
+              <div class="muted">sim</div>
+            </div>
+          </div>
+
+          <div class="pins right">
+            <!-- right header pins -->
+          </div>
+
+          <div class="board-footer mono">
+            <span id="selPin">Pin selezionato: —</span>
+            <span id="wifiState" class="muted">Wi-Fi: idle</span>
+          </div>
+        </div>
+
+        <div class="wiring">
+          <div class="wiring-head">
+            <h3>Connessioni</h3>
+            <button id="clearWiresBtn" class="btn small">Clear</button>
+          </div>
+          <div id="wiresList" class="wires-list mono"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Devices + editor -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Periferiche</h2>
+        <div class="hint">Aggiungi device → collega terminali → controllali dallo sketch.</div>
+      </div>
+
+      <div class="devices">
+        <div class="device-bar">
+          <button class="btn small" data-add="led">+ LED</button>
+          <button class="btn small" data-add="button">+ Pulsante</button>
+          <button class="btn small" data-add="temp">+ Temp</button>
+          <button class="btn small" data-add="hum">+ Umidità</button>
+          <button class="btn small" data-add="motion">+ PIR</button>
+          <button class="btn small" data-add="oled">+ OLED SSD1306</button>
+          <button class="btn small" data-add="relay">+ Relè</button>
+        </div>
+
+        <div id="deviceGrid" class="device-grid"></div>
+      </div>
+
+      <div class="editor">
+        <div class="editor-head">
+          <h3>Sketch</h3>
+          <div class="hint">È JS ma con API stile Arduino: setup(), loop(), pinMode(), digitalWrite(), analogRead(), delay()</div>
+        </div>
+        <textarea id="code" spellcheck="false"></textarea>
+
+        <div class="console">
+          <div class="console-head">
+            <span class="mono">Console</span>
+            <button id="clearLogBtn" class="btn small">Clear</button>
+          </div>
+          <pre id="log" class="mono"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
